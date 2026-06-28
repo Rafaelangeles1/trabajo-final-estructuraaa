@@ -1,6 +1,9 @@
 ﻿  pch.cpp
   AssemblyInfo.cpp
   Tb1_algoritmos.cpp
+C:\Users\usuario\source\repos\Tb1_algoritmos\Tb1_algoritmos\Tb1_algoritmos.cpp(408,32): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+  (compilando archivo de origen "/Tb1_algoritmos.cpp")
+  
   Generando código...
   .NETFramework,Version=v4.7.2.AssemblyAttributes.cpp
   AssemblyInfo.obj : se encontró un módulo MSIL; vinculación incremental deshabilitada para MSIL; ejecutando vínculo completo

@@ -11,7 +11,6 @@
 #include <stdexcept>
 #include <iomanip>
 #include <limits>
-#include <algorithm> // Para std::reverse
 
 #include "ListaDoble.h"
 #include "Pila.h"
@@ -68,11 +67,11 @@ void mostrarMenu() {
     cout << "  [4] Eliminar usuario\n";
     cout << "  [5] Simular leccion (Vocabulario)\n";
     cout << "  [6] Ver notificaciones\n";
-    cout << "  [7] Ver ranking (Elegir Algoritmo)\n";
-    cout << "  [8] Buscar item en tienda\n";
+    cout << "  [7] Ver ranking\n";
+    cout << "  [8] Ver progreso de usuario\n";
     cout << "  [9] Gestionar idiomas\n";
-    cout << " [10] Generar dataset\n";
-    cout << " [11] Estadisticas del sistema\n";
+    cout << " [10] Estadisticas del sistema\n";
+    cout << " [11] Generar dataset\n";
     cout << "  [0] Guardar y salir\n";
     linea();
     cout << "  Opcion: ";
@@ -82,38 +81,38 @@ void mostrarMenu() {
 // MAIN
 // ============================================================
 int main() {
-    // --- Cargar usuarios desde archivo ---
-    ListaDoble<Usuario> listaUsuarios;
-    cargarUsuarios(listaUsuarios);
+    // ---------------------------------------------------------
+    // GENERADOR: corre automaticamente al inicio para poblar
+    // las estructuras con datos realistas
+    // ---------------------------------------------------------
+    Generador gen(42);
+    gen.generarTodo(20, 20, 30);   // genera y guarda archivos
 
-    // --- Estructuras de datos del sistema ---
-    Pila<Vocabulario>    pilaVocab;
-    Cola<Notificacion>   colaNotif;
-    ListaDoble<Idioma>   listaIdiomas;
-    ListaDoble<Logro>    listaLogros;
-
-    // --- HashTable: busqueda O(1) de usuarios por nombre ---
+    // ---------------------------------------------------------
+    // Estructuras de datos del sistema
+    // ---------------------------------------------------------
+    ListaDoble<Usuario>    listaUsuarios;
+    ListaDoble<Idioma>     listaIdiomas;
+    ListaDoble<Logro>      listaLogros;
+    Pila<Vocabulario>      pilaVocab;
+    Cola<Notificacion>     colaNotif;
     HashTable<string, Usuario> hashUsuarios;
 
-    // --- Cargar HashTable con los usuarios del archivo ---
+    // Cargar usuarios desde archivo (los que genero + los previos)
+    cargarUsuarios(listaUsuarios);
+
+    // Sincronizar HashTable con la lista cargada
     listaUsuarios.iterar([&hashUsuarios](Usuario& u) {
         hashUsuarios.insertar(u.nombre, u);
         });
 
-    // --- Generador de dataset ---
-    Generador gen(42);
+    // Idiomas del sistema
+    auto idiomasGen = gen.generarIdiomas();
+    for (auto& id : idiomasGen) listaIdiomas.agregar(id);
 
-    // --- Cargar idiomas base ---
-    listaIdiomas.agregar({ "Ingles",    "Facil" });
-    listaIdiomas.agregar({ "Frances",   "Medio" });
-    listaIdiomas.agregar({ "Japones",   "Dificil" });
-    listaIdiomas.agregar({ "Aleman",    "Medio" });
-    listaIdiomas.agregar({ "Portugues", "Facil" });
-
-    // --- Cargar logros base ---
-    listaLogros.agregar({ "Primera leccion", "Completa tu primera leccion" });
-    listaLogros.agregar({ "Racha 7 dias",    "7 dias consecutivos" });
-    listaLogros.agregar({ "100 puntos",      "Acumula 100 puntos" });
+    // Logros del sistema
+    auto logrosGen = gen.generarLogros();
+    for (auto& l : logrosGen) listaLogros.agregar(l);
 
     int op = -1;
 
@@ -129,18 +128,18 @@ int main() {
         }
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        // --------------------------------------------------------
         switch (op) {
 
             // ========================================================
             // OPCION 1: Agregar usuario
+            // Lambda: confirmar registro
             // ========================================================
         case 1: {
             titulo("AGREGAR USUARIO");
             string nom, sus;
             int pts;
 
-            cout << "  Nombre: "; getline(cin, nom);
+            cout << "  Nombre: ";           getline(cin, nom);
             if (nom.empty()) { cout << "  Nombre no puede estar vacio.\n"; break; }
 
             cout << "  Puntos iniciales: "; cin >> pts;
@@ -155,9 +154,8 @@ int main() {
             cout << "  Suscripcion (Gratis/Plus/Premium): "; getline(cin, sus);
             if (sus.empty()) sus = "Gratis";
 
-            // Verificar duplicado en HashTable - O(1)
-            Usuario* existente = hashUsuarios.buscar(nom);
-            if (existente) {
+            // Verificar duplicado con HashTable O(1)
+            if (hashUsuarios.buscar(nom)) {
                 cout << "  El usuario \"" << nom << "\" ya existe.\n";
                 break;
             }
@@ -166,10 +164,10 @@ int main() {
             listaUsuarios.agregar(nuevo);
             hashUsuarios.insertar(nom, nuevo);
 
-            // LAMBDA: confirmar registro
-            auto confirmar = [](const string& nombre, const string& sus_) {
-                cout << "  Usuario \"" << nombre
-                    << "\" registrado con suscripcion " << sus_ << ".\n";
+            // LAMBDA 1: confirmar registro
+            auto confirmar = [](const string& n, const string& s) {
+                cout << "  Usuario \"" << n
+                    << "\" registrado con suscripcion " << s << ".\n";
                 };
             confirmar(nom, sus);
             break;
@@ -177,6 +175,8 @@ int main() {
 
               // ========================================================
               // OPCION 2: Ver usuarios y total de puntos
+              // Lambda: mostrar usuario, contar premium
+              // Recursion: sumaPuntosRec
               // ========================================================
         case 2: {
             titulo("USUARIOS REGISTRADOS");
@@ -185,7 +185,7 @@ int main() {
             }
 
             int conta = 0;
-            // LAMBDA: mostrar usuario
+            // LAMBDA 2: mostrar cada usuario formateado
             listaUsuarios.iterar([&conta](Usuario& u) {
                 conta++;
                 cout << "  " << setw(2) << conta << ". "
@@ -194,12 +194,13 @@ int main() {
                     << " | " << u.suscripcion << "\n";
                 });
 
+            // Recursion: suma total de puntos
             int total = sumaPuntosRec(listaUsuarios.getInicio());
             linea('-');
             cout << "  Total de usuarios : " << listaUsuarios.size() << "\n";
             cout << "  Total puntos      : " << total << "\n";
 
-            // LAMBDA: contar premium
+            // LAMBDA 3: contar usuarios premium
             int premiums = 0;
             listaUsuarios.iterar([&premiums](Usuario& u) {
                 if (esPremium(u)) premiums++;
@@ -209,7 +210,8 @@ int main() {
         }
 
               // ========================================================
-              // OPCION 3: Buscar usuario (HashTable O(1) + recursion)
+              // OPCION 3: Buscar usuario
+              // HashTable O(1) + busqueda recursiva como respaldo
               // ========================================================
         case 3: {
             titulo("BUSCAR USUARIO");
@@ -225,11 +227,12 @@ int main() {
                 cout << "    Suscripcion : " << ptr->suscripcion << "\n";
             }
             else {
-                // Busqueda recursiva como respaldo
+                // Recursion: busqueda por lista enlazada
                 Nodo<Usuario>* nRec = buscarUsuarioRec(listaUsuarios.getInicio(), nom);
                 if (nRec)
                     cout << "  [Busqueda recursiva] Encontrado: "
-                    << nRec->dato.nombre << " | " << nRec->dato.puntos << " pts\n";
+                    << nRec->dato.nombre << " | "
+                    << nRec->dato.puntos << " pts\n";
                 else
                     cout << "  Usuario \"" << nom << "\" no encontrado.\n";
             }
@@ -238,24 +241,24 @@ int main() {
 
               // ========================================================
               // OPCION 4: Eliminar usuario
+              // Lambda predicado en ListaDoble::eliminar
               // ========================================================
         case 4: {
             titulo("ELIMINAR USUARIO");
             string nom;
             cout << "  Nombre a eliminar: "; getline(cin, nom);
 
-            // LAMBDA predicado para eliminar
+            // LAMBDA 4: predicado de eliminacion
             bool ok = listaUsuarios.eliminar([&nom](const Usuario& u) {
                 return u.nombre == nom;
                 });
             if (ok) {
-                hashUsuarios.recorrer([](const string&, const Usuario&) {});
-                // Reconstruir hashtable (simple para este proyecto)
-                HashTable<string, Usuario> nuevo;
-                listaUsuarios.iterar([&nuevo](Usuario& u) {
-                    nuevo.insertar(u.nombre, u);
+                // Reconstruir HashTable sin el eliminado
+                HashTable<string, Usuario> nueva;
+                listaUsuarios.iterar([&nueva](Usuario& u) {
+                    nueva.insertar(u.nombre, u);
                     });
-                hashUsuarios = nuevo;
+                hashUsuarios = nueva;
                 cout << "  Usuario \"" << nom << "\" eliminado correctamente.\n";
             }
             else {
@@ -266,20 +269,19 @@ int main() {
 
               // ========================================================
               // OPCION 5: Simular leccion con vocabulario (Pila)
+              // Lambda: validar respuesta del mini-examen
               // ========================================================
         case 5: {
             titulo("SIMULACION DE LECCION");
 
-            // Generar vocabulario con el generador
-            auto vocab = gen.generarVocabulario(6);
-            for (auto& v : vocab) pilaVocab.push(v);
-
-            // Agregar algunas palabras fijas tambien
-            pilaVocab.push({ "Hello",   "Hola" });
-            pilaVocab.push({ "Apple",   "Manzana" });
-            pilaVocab.push({ "Dog",     "Perro" });
-            pilaVocab.push({ "School",  "Escuela" });
-            pilaVocab.push({ "Water",   "Agua" });
+            // Vocabulario generado + palabras fijas
+            auto vocab = gen.generarVocabulario(5);
+            for (auto& v : vocab)          pilaVocab.push(v);
+            pilaVocab.push({ "Hello",  "Hola" });
+            pilaVocab.push({ "Apple",  "Manzana" });
+            pilaVocab.push({ "Dog",    "Perro" });
+            pilaVocab.push({ "School", "Escuela" });
+            pilaVocab.push({ "Water",  "Agua" });
 
             cout << "  Estudia estas palabras:\n\n";
             int num = 1;
@@ -290,35 +292,34 @@ int main() {
                 pilaVocab.pop();
             }
 
-            // Miniexamen con lambda validador
+            // LAMBDA 5: validar respuesta del mini-examen
             cout << "\n  Mini examen: escribe la traduccion de 'Dog'\n";
             cout << "  Tu respuesta: ";
             string resp; getline(cin, resp);
-
             auto validar = [](const string& r) {
                 return r == "Perro" || r == "perro" || r == "PERRO";
                 };
-            cout << (validar(resp) ? "  Correcto! +10 puntos\n" : "  Incorrecto. Era: Perro\n");
+            cout << (validar(resp)
+                ? "  Correcto! +10 puntos\n"
+                : "  Incorrecto. Era: Perro\n");
             break;
         }
 
               // ========================================================
-              // OPCION 6: Notificaciones (Cola)
+              // OPCION 6: Notificaciones (Cola FIFO)
               // ========================================================
         case 6: {
             titulo("NOTIFICACIONES");
 
-            // Generar notificaciones con el generador
+            // Cargar notificaciones generadas + del sistema
             auto notifs = gen.generarNotificaciones(4);
             for (auto& n : notifs)
                 colaNotif.enqueue({ n.mensaje, n.hora });
+            colaNotif.enqueue({ "Nueva racha disponible!",       "10:00" });
+            colaNotif.enqueue({ "Completa tu leccion diaria.",   "12:00" });
+            colaNotif.enqueue({ "Tu amigo te supero en puntos!", "15:30" });
 
-            // Agregar notificaciones del sistema
-            colaNotif.enqueue({ "Nueva racha disponible!",      "10:00" });
-            colaNotif.enqueue({ "Completa tu leccion diaria.",  "12:00" });
-            colaNotif.enqueue({ "Tu amigo te supero en puntos!","15:30" });
-
-            cout << "  Procesando notificaciones pendientes:\n\n";
+            cout << "  Procesando notificaciones (FIFO):\n\n";
             int i = 1;
             while (!colaNotif.vacia()) {
                 cout << "  " << i++ << ". ["
@@ -331,56 +332,39 @@ int main() {
         }
 
               // ========================================================
-              // OPCION 7: Ranking con selección de Algoritmo interactivo
+              // OPCION 7: Ranking - usa los 3 algoritmos de ordenamiento
+              // QuickSort, ShellSort, MergeSort
               // ========================================================
         case 7: {
             titulo("RANKING DE USUARIOS");
 
-            // Generar ranking con el generador
-            auto rankGen = gen.generarRanking(5);
+            // Construir vector de ranking
             vector<Ranking> rank;
-            for (auto& r : rankGen)
-                rank.push_back({ r.usuario, r.posicion });
-
-            // Agregar usuarios registrados al ranking
             listaUsuarios.iterar([&rank](Usuario& u) {
                 rank.push_back({ u.nombre, u.puntos });
                 });
+            // Agregar algunos del generador
+            auto rankGen = gen.generarRanking(5);
+            for (auto& r : rankGen) rank.push_back({ r.usuario, r.posicion });
 
             if (rank.empty()) { cout << "  Sin datos de ranking.\n"; break; }
 
-            // Menú de selección de algoritmos
-            cout << "  Seleccione el algoritmo de ordenamiento:\n";
-            cout << "  [1] QuickSort (Predeterminado - In-place)\n";
-            cout << "  [2] MergeSort (Estable - O(n log n) garantizado)\n";
-            cout << "  [3] ShellSort (Sondeo por brechas - Eficiente)\n";
-            cout << "  Selección: ";
-            int algOp; cin >> algOp;
-            if (cin.fail()) {
-                cin.clear();
-                algOp = 1;
-            }
+            // Submenu de algoritmo
+            cout << "\n  Ordenar con:\n";
+            cout << "  [1] QuickSort  - O(n log n) promedio\n";
+            cout << "  [2] ShellSort  - O(n log^2 n)\n";
+            cout << "  [3] MergeSort  - O(n log n) garantizado\n";
+            cout << "  Algoritmo: ";
+            int alg; cin >> alg;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            switch (algOp) {
-            case 2:
-                cout << "\n  Ordenando de forma estable con MergeSort...\n";
-                mergeSort(rank, 0, (int)rank.size() - 1);
-                break;
-            case 3:
-                cout << "\n  Ordenando eficientemente con ShellSort...\n";
-                shellSort(rank);
-                break;
-            case 1:
-            default:
-                cout << "\n  Ordenando velozmente con QuickSort...\n";
-                quickSort(rank, 0, (int)rank.size() - 1);
-                break;
-            }
+            if (alg == 1) { quickSort(rank, 0, (int)rank.size() - 1); cout << "  [QuickSort aplicado]\n"; }
+            else if (alg == 2) { shellSort(rank);                         cout << "  [ShellSort aplicado]\n"; }
+            else if (alg == 3) { mergeSort(rank, 0, (int)rank.size() - 1); cout << "  [MergeSort aplicado]\n"; }
+            else { quickSort(rank, 0, (int)rank.size() - 1); cout << "  [QuickSort por defecto]\n"; }
 
-            // Invertir para mostrar el puntaje mayor primero
+            // Mostrar de mayor a menor
             reverse(rank.begin(), rank.end());
-
             cout << "\n";
             for (int i = 0; i < (int)rank.size() && i < 10; i++) {
                 cout << "  #" << setw(2) << (i + 1) << " "
@@ -391,35 +375,83 @@ int main() {
         }
 
               // ========================================================
-              // OPCION 8: Buscar item en tienda (recursion)
+              // OPCION 8: Ver progreso de un usuario
+              // Usa ListaDoble::buscar con lambda + recursion para
+              // calcular porcentaje de lecciones completadas
               // ========================================================
         case 8: {
-            titulo("TIENDA DE ITEMS");
+            titulo("PROGRESO DE USUARIO");
 
-            // Generar items con el generador
-            auto itemsGen = gen.generarItems();
-            vector<string> items;
-            cout << "  Items disponibles:\n";
-            for (int i = 0; i < (int)itemsGen.size(); i++) {
-                items.push_back(itemsGen[i].tipo);
-                cout << "  " << (i + 1) << ". "
-                    << left << setw(20) << itemsGen[i].tipo
-                    << " | " << "---" << " gemas\n";
+            if (listaUsuarios.vacia()) {
+                cout << "  No hay usuarios registrados.\n"; break;
             }
 
-            cout << "\n  Buscar item: ";
-            string buscar; getline(cin, buscar);
+            cout << "  Nombre del usuario: ";
+            string nom; getline(cin, nom);
 
-            bool encontrado = buscarItemRec(items, buscar);
-            cout << (encontrado
-                ? "  Item \"" + buscar + "\" encontrado en la tienda.\n"
-                : "  Item \"" + buscar + "\" NO disponible.\n");
-            cout << "  Total de items: " << contarPalabrasRec(items) << "\n";
+            // LAMBDA 8: buscar usuario por nombre en la lista
+            Nodo<Usuario>* nodo = listaUsuarios.buscar([&nom](const Usuario& u) {
+                return u.nombre == nom;
+                });
+
+            if (!nodo) {
+                cout << "  Usuario \"" << nom << "\" no encontrado.\n"; break;
+            }
+
+            // Generar progreso del usuario con el generador
+            auto progresosGen = gen.generarProgreso(1);
+            Progreso prog = progresosGen[0];
+            prog.fecha = "2026-06-28";   // fecha actual del sistema
+
+            // Recursion: calcular porcentaje de avance
+            // (lecciones completadas sobre total disponible)
+            int totalLecciones = gen.generarLecciones(20).size();
+            auto calcPorcentaje = [](int completadas, int total, auto& self) -> int {
+                if (total <= 0) return 0;
+                if (completadas <= 0) return 0;
+                if (completadas >= total) return 100;
+                // Suma recursiva de porcentaje por leccion
+                return 1 + self(completadas - 1, total, self);
+                };
+            int porcentaje = calcPorcentaje(
+                prog.lecciones_completadas, totalLecciones, calcPorcentaje);
+            // Escalar al rango 0-100
+            porcentaje = (prog.lecciones_completadas * 100) / max(1, totalLecciones);
+
+            // Mostrar progreso
+            linea('-');
+            cout << "  Usuario          : " << nodo->dato.nombre << "\n";
+            cout << "  Suscripcion      : " << nodo->dato.suscripcion << "\n";
+            cout << "  Puntos totales   : " << nodo->dato.puntos << "\n";
+            linea('-');
+            cout << "  Ultima actividad : " << prog.fecha << "\n";
+            cout << "  Lecciones hechas : " << prog.lecciones_completadas
+                << " / " << totalLecciones << "\n";
+            cout << "  Avance           : " << porcentaje << "%\n";
+            linea('-');
+
+            // Barra de progreso visual
+            cout << "  [";
+            int llenos = porcentaje / 5;   // 20 bloques = 100%
+            for (int i = 0; i < 20; i++)
+                cout << (i < llenos ? "#" : "-");
+            cout << "] " << porcentaje << "%\n";
+            linea('-');
+
+            // LAMBDA 9: mensaje segun nivel de avance
+            auto mensajeNivel = [](int pct) -> string {
+                if (pct >= 80) return "Excelente progreso! Sigue asi.";
+                if (pct >= 50) return "Buen avance, no te detengas!";
+                if (pct >= 20) return "Vas por buen camino, practica mas.";
+                return "Recien empezando, cada leccion cuenta!";
+                };
+            cout << "  " << mensajeNivel(porcentaje) << "\n";
             break;
         }
 
               // ========================================================
-              // OPCION 9: Gestionar idiomas (ListaDoble)
+              // OPCION 9: Gestionar idiomas
+              // Lambda: filtrar por dificultad, buscar
               // ========================================================
         case 9: {
             titulo("IDIOMAS DISPONIBLES");
@@ -431,38 +463,85 @@ int main() {
                     << " | Dificultad: " << id.dificultad << "\n";
                 });
 
-            // LAMBDA: filtrar solo idiomas dificiles
-            cout << "\n  Idiomas de dificultad 'Dificil':\n";
+            // LAMBDA 6: filtrar idiomas dificiles
+            cout << "\n  Idiomas nivel Dificil:\n";
             listaIdiomas.iterar([](const Idioma& id) {
                 if (id.dificultad == "Dificil")
                     cout << "  -> " << id.nombre << "\n";
                 });
 
-            // Buscar idioma
-            cout << "\n  Buscar idioma: ";
+            // Buscar idioma con lambda en ListaDoble::buscar
+            cout << "\n  Buscar idioma (o ENTER para omitir): ";
             string nom; getline(cin, nom);
-            Nodo<Idioma>* res = listaIdiomas.buscar([&nom](const Idioma& id) {
-                return id.nombre == nom;
-                });
-            if (res)
-                cout << "  Encontrado: " << res->dato.nombre
-                << " (" << res->dato.dificultad << ")\n";
-            else
-                cout << "  Idioma no encontrado.\n";
+            if (!nom.empty()) {
+                Nodo<Idioma>* res = listaIdiomas.buscar([&nom](const Idioma& id) {
+                    return id.nombre == nom;
+                    });
+                if (res)
+                    cout << "  Encontrado: " << res->dato.nombre
+                    << " (" << res->dato.dificultad << ")\n";
+                else
+                    cout << "  Idioma \"" << nom << "\" no encontrado.\n";
+            }
             break;
         }
 
               // ========================================================
-              // OPCION 10: Generar dataset completo
+              // OPCION 10: Estadisticas del sistema
+              // Lambda: calcular stats en una sola pasada
+              // Recursion: sumaPuntosRec
               // ========================================================
         case 10: {
+            titulo("ESTADISTICAS DEL SISTEMA");
+
+            int totalUsuarios = listaUsuarios.size();
+            int totalPuntos = sumaPuntosRec(listaUsuarios.getInicio());
+            int premiums = 0;
+            int maxPuntos = 0;
+            string lider = "N/A";
+
+            // LAMBDA 7: calcular todo en una pasada
+            listaUsuarios.iterar([&](Usuario& u) {
+                if (esPremium(u)) premiums++;
+                if (u.puntos > maxPuntos) { maxPuntos = u.puntos; lider = u.nombre; }
+                });
+
+            linea('-');
+            cout << "  Total usuarios    : " << totalUsuarios << "\n";
+            cout << "  Usuarios premium  : " << premiums << "\n";
+            cout << "  Usuarios gratis   : " << (totalUsuarios - premiums) << "\n";
+            cout << "  Total puntos      : " << totalPuntos << "\n";
+            cout << "  Promedio puntos   : "
+                << (totalUsuarios > 0 ? totalPuntos / totalUsuarios : 0) << "\n";
+            cout << "  Lider de puntos   : " << lider
+                << " (" << maxPuntos << " pts)\n";
+            linea('-');
+            cout << "  Idiomas cargados  : " << listaIdiomas.size() << "\n";
+            cout << "  Logros del sistema: " << listaLogros.size() << "\n";
+            linea('-');
+            cout << "  Logros disponibles:\n";
+            listaLogros.iterar([](const Logro& l) {
+                cout << "    * " << l.nombre << ": " << l.descripcion << "\n";
+                });
+            break;
+        }
+
+               // ========================================================
+               // OPCION 11: Generar dataset
+               // Genera datos para todas las entidades y guarda en .txt
+               // ========================================================
+        case 11: {
             titulo("GENERADOR DE DATASET");
             cout << "  Cuantos usuarios generar? (5-50): ";
             int n; cin >> n;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            if (n < 5 || n > 50) { cout << "  Valor fuera de rango. Se usa 10.\n"; n = 10; }
+            if (n < 5 || n > 50) { cout << "  Fuera de rango. Se usa 10.\n"; n = 10; }
 
             auto usuariosGen = gen.generarUsuarios(n);
+            auto leccionesGen = gen.generarLecciones(20);
+            auto vocabGen = gen.generarVocabulario(30);
+
+            // Mostrar preview de usuarios generados
             cout << "\n  Usuarios generados:\n";
             for (int i = 0; i < (int)usuariosGen.size() && i < 8; i++) {
                 cout << "  " << (i + 1) << ". "
@@ -473,67 +552,26 @@ int main() {
             if ((int)usuariosGen.size() > 8)
                 cout << "  ... y " << (usuariosGen.size() - 8) << " mas.\n";
 
-            cout << "\n  Cargar estos usuarios al sistema? (s/n): ";
+            // Guardar los tres archivos
+            gen.guardarUsuariosEnArchivo(usuariosGen, "dataset_usuarios.txt");
+            gen.guardarLeccionesEnArchivo(leccionesGen, "dataset_lecciones.txt");
+            gen.guardarVocabularioEnArchivo(vocabGen, "dataset_vocabulario.txt");
+
+            // Preguntar si cargar al sistema
+            cout << "\n  Cargar usuarios al sistema? (s/n): ";
             char resp; cin >> resp;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             if (resp == 's' || resp == 'S') {
+                int cargados = 0;
                 for (auto& u : usuariosGen) {
-                    // Solo agregar si no existe
                     if (!hashUsuarios.buscar(u.nombre)) {
                         listaUsuarios.agregar(u);
                         hashUsuarios.insertar(u.nombre, u);
+                        cargados++;
                     }
                 }
-                cout << "  Usuarios cargados al sistema.\n";
+                cout << "  " << cargados << " usuarios nuevos cargados al sistema.\n";
             }
-
-            // Guardar archivos de dataset
-            gen.guardarUsuariosEnArchivo(usuariosGen, "dataset_usuarios.txt");
-            gen.guardarLeccionesEnArchivo(gen.generarLecciones(20), "dataset_lecciones.txt");
-            gen.guardarVocabularioEnArchivo(gen.generarVocabulario(30), "dataset_vocabulario.txt");
-            break;
-        }
-
-               // ========================================================
-               // OPCION 11: Estadisticas del sistema
-               // ========================================================
-        case 11: {
-            titulo("ESTADISTICAS DEL SISTEMA");
-
-            int totalUsuarios = listaUsuarios.size();
-            int totalPuntos = sumaPuntosRec(listaUsuarios.getInicio());
-            int premiums = 0;
-            int maxPuntos = 0;
-            string mejorUsuario = "N/A";
-
-            // LAMBDA: calcular estadisticas en una sola pasada
-            listaUsuarios.iterar([&](Usuario& u) {
-                if (esPremium(u)) premiums++;
-                if (u.puntos > maxPuntos) {
-                    maxPuntos = u.puntos;
-                    mejorUsuario = u.nombre;
-                }
-                });
-
-            linea('-');
-            cout << "  Total usuarios    : " << totalUsuarios << "\n";
-            cout << "  Usuarios premium  : " << premiums << "\n";
-            cout << "  Usuarios gratis   : " << (totalUsuarios - premiums) << "\n";
-            cout << "  Total puntos      : " << totalPuntos << "\n";
-            cout << "  Promedio puntos   : "
-                << (totalUsuarios > 0 ? totalPuntos / totalUsuarios : 0) << "\n";
-            cout << "  Lider de puntos   : " << mejorUsuario
-                << " (" << maxPuntos << " pts)\n";
-            linea('-');
-            cout << "  Idiomas cargados  : " << listaIdiomas.size() << "\n";
-            cout << "  Logros del sistema: " << listaLogros.size() << "\n";
-            linea('-');
-
-            // Mostrar logros
-            cout << "  Logros disponibles:\n";
-            listaLogros.iterar([](const Logro& l) {
-                cout << "    * " << l.nombre << ": " << l.descripcion << "\n";
-                });
             break;
         }
 

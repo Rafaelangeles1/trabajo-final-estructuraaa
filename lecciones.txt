@@ -1,0 +1,20 @@
+Saludos basicos|11
+Numeros|10
+Colores|25
+Animales|14
+Familia|7
+Comida|25
+Viajes|24
+Trabajo|20
+Salud|10
+Tiempo libre|10
+Transporte|17
+Tecnologia|23
+Naturaleza|16
+Deportes|8
+Musica|22
+Saludos basicos|8
+Numeros|10
+Colores|24
+Animales|19
+Familia|8
