@@ -1,9 +1,4 @@
-// ============================================================
-// main.cpp - Plataforma de Aprendizaje de Idiomas (Duolingo)
-// Grupo 5 | Estructuras de Datos Avanzadas | UPC 2026-1
-// Integrantes: Abel | Martin Berrios Pacherres |
-//              Rafael David Prudencio Angeles Alegre
-// ============================================================
+
 #include "pch.h"
 #include <iostream>
 #include <vector>
@@ -23,9 +18,7 @@
 
 using namespace std;
 
-// ============================================================
-// UTILIDADES DE CONSOLA
-// ============================================================
+
 void limpiar() {
 #ifdef _WIN32
     system("cls");
