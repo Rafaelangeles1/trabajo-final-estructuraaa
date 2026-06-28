@@ -1,10 +1,6 @@
 #ifndef GENERADOR_H
 #define GENERADOR_H
-// ============================================================
-// Generador.h - Generador de dataset propio
-// Grupo 5 - Plataforma global de aprendizaje de idiomas
-// Requisito TB2: Implementar generador de dataset propio
-// ============================================================
+
 #include "Entidades.h"
 #include <iostream>
 #include <fstream>
@@ -71,10 +67,7 @@ public:
     Generador() { srand((unsigned)time(nullptr)); }
     explicit Generador(unsigned s) { srand(s); }
 
-    // --------------------------------------------------------
-    // generarUsuarios: usa campos de Entidades.h
-    // struct Usuario { string nombre; int puntos; string suscripcion; }
-    // --------------------------------------------------------
+    
     vector<Usuario> generarUsuarios(int n = 20) const {
         vector<Usuario> lista;
         for (int i = 1; i <= n; i++) {
@@ -87,10 +80,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
-    // generarIdiomas
-    // struct Idioma { string nombre; string dificultad; }
-    // --------------------------------------------------------
+    
     vector<Idioma> generarIdiomas() const {
         return {
             {"Ingles",    "Facil"   },
@@ -106,10 +96,7 @@ public:
         };
     }
 
-    // --------------------------------------------------------
-    // generarCursos
-    // struct Curso { string nombre_idioma; int nivel_actual; }
-    // --------------------------------------------------------
+    
     vector<Curso> generarCursos(int n = 8) const {
         vector<string> idiomaNombres = {
             "Ingles","Frances","Aleman","Japones","Chino","Portugues"
@@ -124,10 +111,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
-    // generarLecciones
-    // struct Leccion { string titulo; int duracion; }
-    // --------------------------------------------------------
+    
     vector<Leccion> generarLecciones(int n = 20) const {
         vector<Leccion> lista;
         for (int i = 0; i < n; i++) {
@@ -139,10 +123,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
-    // generarVocabulario
-    // struct Vocabulario { string palabra; string traduccion; }
-    // --------------------------------------------------------
+    
     vector<Vocabulario> generarVocabulario(int n = 30) const {
         vector<Vocabulario> lista;
         for (int i = 0; i < n; i++) {
@@ -152,10 +133,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
-    // generarProgreso
-    // struct Progreso { string fecha; int lecciones_completadas; }
-    // --------------------------------------------------------
+    
     vector<Progreso> generarProgreso(int n = 20) const {
         vector<Progreso> lista;
         for (int i = 0; i < n; i++) {
@@ -167,10 +145,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
-    // generarLogros
-    // struct Logro { string nombre; string descripcion; }
-    // --------------------------------------------------------
+    
     vector<Logro> generarLogros() const {
         vector<Logro> lista;
         vector<string> descs = {
@@ -187,10 +162,7 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
     // generarExamenes
-    // struct Examen { string tema; int nota; }
-    // --------------------------------------------------------
     vector<Examen> generarExamenes(int n = 10) const {
         vector<Examen> lista;
         for (int i = 0; i < n; i++) {
@@ -202,10 +174,9 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarPreguntas
-    // struct Pregunta { string enunciado; string respuesta; }
-    // --------------------------------------------------------
+    
     vector<Pregunta> generarPreguntas(int n = 20) const {
         vector<string> enunc = {
             "Como se dice 'hello'?","Traduce 'water'","Plural de 'mouse'",
@@ -218,10 +189,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarRanking
-    // struct Ranking { string usuario; int posicion; }
-    // --------------------------------------------------------
     vector<Ranking> generarRanking(int n = 10) const {
         vector<Ranking> lista;
         for (int i = 1; i <= n; i++) {
@@ -233,10 +202,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarAmigos
-    // struct Amigo { string nombre; bool conectado; }
-    // --------------------------------------------------------
     vector<Amigo> generarAmigos(int n = 10) const {
         vector<Amigo> lista;
         for (int i = 0; i < n; i++) {
@@ -248,10 +215,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+   
     // generarNotificaciones
-    // struct Notificacion { string mensaje; string hora; }
-    // --------------------------------------------------------
     vector<Notificacion> generarNotificaciones(int n = 10) const {
         vector<string> horas = {
             "08:00","09:30","12:00","15:00","18:30","20:00","22:00"
@@ -266,10 +231,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarItems
-    // struct Item { string tipo; bool desbloqueado; }
-    // --------------------------------------------------------
     vector<Item> generarItems() const {
         vector<Item> lista;
         for (int i = 0; i < (int)nombresItem.size(); i++) {
@@ -281,10 +244,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarTienda
-    // struct Tienda { string nombre_item; int costo; }
-    // --------------------------------------------------------
     vector<Tienda> generarTienda() const {
         int costos[] = { 200,150,300,100,350,250,500,400 };
         vector<Tienda> lista;
@@ -297,10 +258,8 @@ public:
         return lista;
     }
 
-    // --------------------------------------------------------
+    
     // generarSuscripciones
-    // struct Suscripcion { string tipo; float precio; }
-    // --------------------------------------------------------
     vector<Suscripcion> generarSuscripciones() const {
         return {
             {"Gratis",   0.0f  },
@@ -310,9 +269,8 @@ public:
         };
     }
 
-    // --------------------------------------------------------
+    
     // Guardar/cargar archivos
-    // --------------------------------------------------------
     void guardarUsuariosEnArchivo(const vector<Usuario>& usuarios,
         const string& archivo = "usuarios.txt") const {
         ofstream f(archivo);
@@ -362,4 +320,4 @@ public:
         cout << "  === Dataset listo ===\n\n";
     }
 };
-#endif // GENERADOR_H
+#endif

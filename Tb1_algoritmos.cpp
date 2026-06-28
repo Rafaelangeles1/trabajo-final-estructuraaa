@@ -53,9 +53,7 @@ void pausar() {
     cin.get();
 }
 
-// ============================================================
-// MENU PRINCIPAL
-// ============================================================
+
 void mostrarMenu() {
     cout << "\n";
     linea();
@@ -77,20 +75,13 @@ void mostrarMenu() {
     cout << "  Opcion: ";
 }
 
-// ============================================================
-// MAIN
-// ============================================================
+
 int main() {
-    // ---------------------------------------------------------
-    // GENERADOR: corre automaticamente al inicio para poblar
-    // las estructuras con datos realistas
-    // ---------------------------------------------------------
+    
     Generador gen(42);
     gen.generarTodo(20, 20, 30);   // genera y guarda archivos
 
-    // ---------------------------------------------------------
-    // Estructuras de datos del sistema
-    // ---------------------------------------------------------
+    
     ListaDoble<Usuario>    listaUsuarios;
     ListaDoble<Idioma>     listaIdiomas;
     ListaDoble<Logro>      listaLogros;
@@ -130,10 +121,7 @@ int main() {
 
         switch (op) {
 
-            // ========================================================
-            // OPCION 1: Agregar usuario
-            // Lambda: confirmar registro
-            // ========================================================
+            
         case 1: {
             titulo("AGREGAR USUARIO");
             string nom, sus;
@@ -154,7 +142,7 @@ int main() {
             cout << "  Suscripcion (Gratis/Plus/Premium): "; getline(cin, sus);
             if (sus.empty()) sus = "Gratis";
 
-            // Verificar duplicado con HashTable O(1)
+            
             if (hashUsuarios.buscar(nom)) {
                 cout << "  El usuario \"" << nom << "\" ya existe.\n";
                 break;
@@ -164,7 +152,7 @@ int main() {
             listaUsuarios.agregar(nuevo);
             hashUsuarios.insertar(nom, nuevo);
 
-            // LAMBDA 1: confirmar registro
+            
             auto confirmar = [](const string& n, const string& s) {
                 cout << "  Usuario \"" << n
                     << "\" registrado con suscripcion " << s << ".\n";
@@ -173,11 +161,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 2: Ver usuarios y total de puntos
-              // Lambda: mostrar usuario, contar premium
-              // Recursion: sumaPuntosRec
-              // ========================================================
+     
         case 2: {
             titulo("USUARIOS REGISTRADOS");
             if (listaUsuarios.vacia()) {
@@ -185,7 +169,7 @@ int main() {
             }
 
             int conta = 0;
-            // LAMBDA 2: mostrar cada usuario formateado
+            
             listaUsuarios.iterar([&conta](Usuario& u) {
                 conta++;
                 cout << "  " << setw(2) << conta << ". "
@@ -194,13 +178,13 @@ int main() {
                     << " | " << u.suscripcion << "\n";
                 });
 
-            // Recursion: suma total de puntos
+            
             int total = sumaPuntosRec(listaUsuarios.getInicio());
             linea('-');
             cout << "  Total de usuarios : " << listaUsuarios.size() << "\n";
             cout << "  Total puntos      : " << total << "\n";
 
-            // LAMBDA 3: contar usuarios premium
+            //contar usuarios premium
             int premiums = 0;
             listaUsuarios.iterar([&premiums](Usuario& u) {
                 if (esPremium(u)) premiums++;
@@ -209,16 +193,13 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 3: Buscar usuario
-              // HashTable O(1) + busqueda recursiva como respaldo
-              // ========================================================
+             
         case 3: {
             titulo("BUSCAR USUARIO");
             string nom;
             cout << "  Nombre a buscar: "; getline(cin, nom);
 
-            // Busqueda O(1) con HashTable
+            // Busqueda con HashTable
             Usuario* ptr = hashUsuarios.buscar(nom);
             if (ptr) {
                 cout << "\n  [HashTable O(1)] Usuario encontrado:\n";
@@ -239,21 +220,18 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 4: Eliminar usuario
-              // Lambda predicado en ListaDoble::eliminar
-              // ========================================================
+              
         case 4: {
             titulo("ELIMINAR USUARIO");
             string nom;
             cout << "  Nombre a eliminar: "; getline(cin, nom);
 
-            // LAMBDA 4: predicado de eliminacion
+            
             bool ok = listaUsuarios.eliminar([&nom](const Usuario& u) {
                 return u.nombre == nom;
                 });
             if (ok) {
-                // Reconstruir HashTable sin el eliminado
+                
                 HashTable<string, Usuario> nueva;
                 listaUsuarios.iterar([&nueva](Usuario& u) {
                     nueva.insertar(u.nombre, u);
@@ -267,10 +245,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 5: Simular leccion con vocabulario (Pila)
-              // Lambda: validar respuesta del mini-examen
-              // ========================================================
+              
         case 5: {
             titulo("SIMULACION DE LECCION");
 
@@ -292,7 +267,7 @@ int main() {
                 pilaVocab.pop();
             }
 
-            // LAMBDA 5: validar respuesta del mini-examen
+            //validar respuesta del mini-examen
             cout << "\n  Mini examen: escribe la traduccion de 'Dog'\n";
             cout << "  Tu respuesta: ";
             string resp; getline(cin, resp);
@@ -305,9 +280,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 6: Notificaciones (Cola FIFO)
-              // ========================================================
+              
         case 6: {
             titulo("NOTIFICACIONES");
 
@@ -331,10 +304,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 7: Ranking - usa los 3 algoritmos de ordenamiento
-              // QuickSort, ShellSort, MergeSort
-              // ========================================================
+              
         case 7: {
             titulo("RANKING DE USUARIOS");
 
@@ -351,17 +321,17 @@ int main() {
 
             // Submenu de algoritmo
             cout << "\n  Ordenar con:\n";
-            cout << "  [1] QuickSort  - O(n log n) promedio\n";
-            cout << "  [2] ShellSort  - O(n log^2 n)\n";
-            cout << "  [3] MergeSort  - O(n log n) garantizado\n";
+            cout << "  QuickSort promedio\n";
+            cout << "  ShellSort\n";
+            cout << "  MergeSort garantizado\n";
             cout << "  Algoritmo: ";
             int alg; cin >> alg;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            if (alg == 1) { quickSort(rank, 0, (int)rank.size() - 1); cout << "  [QuickSort aplicado]\n"; }
-            else if (alg == 2) { shellSort(rank);                         cout << "  [ShellSort aplicado]\n"; }
-            else if (alg == 3) { mergeSort(rank, 0, (int)rank.size() - 1); cout << "  [MergeSort aplicado]\n"; }
-            else { quickSort(rank, 0, (int)rank.size() - 1); cout << "  [QuickSort por defecto]\n"; }
+            if (alg == 1) { quickSort(rank, 0, (int)rank.size() - 1); cout << "  QuickSort aplicado\n"; }
+            else if (alg == 2) { shellSort(rank);                         cout << "  ShellSort aplicado\n"; }
+            else if (alg == 3) { mergeSort(rank, 0, (int)rank.size() - 1); cout << "  MergeSort aplicado\n"; }
+            else { quickSort(rank, 0, (int)rank.size() - 1); cout << "  QuickSort por defecto\n"; }
 
             // Mostrar de mayor a menor
             reverse(rank.begin(), rank.end());
@@ -374,11 +344,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 8: Ver progreso de un usuario
-              // Usa ListaDoble::buscar con lambda + recursion para
-              // calcular porcentaje de lecciones completadas
-              // ========================================================
+              
         case 8: {
             titulo("PROGRESO DE USUARIO");
 
@@ -389,7 +355,7 @@ int main() {
             cout << "  Nombre del usuario: ";
             string nom; getline(cin, nom);
 
-            // LAMBDA 8: buscar usuario por nombre en la lista
+            //buscar usuario por nombre en la lista
             Nodo<Usuario>* nodo = listaUsuarios.buscar([&nom](const Usuario& u) {
                 return u.nombre == nom;
                 });
@@ -403,8 +369,7 @@ int main() {
             Progreso prog = progresosGen[0];
             prog.fecha = "2026-06-28";   // fecha actual del sistema
 
-            // Recursion: calcular porcentaje de avance
-            // (lecciones completadas sobre total disponible)
+            
             int totalLecciones = gen.generarLecciones(20).size();
             auto calcPorcentaje = [](int completadas, int total, auto& self) -> int {
                 if (total <= 0) return 0;
@@ -432,13 +397,13 @@ int main() {
 
             // Barra de progreso visual
             cout << "  [";
-            int llenos = porcentaje / 5;   // 20 bloques = 100%
+            int llenos = porcentaje / 5;   
             for (int i = 0; i < 20; i++)
                 cout << (i < llenos ? "#" : "-");
             cout << "] " << porcentaje << "%\n";
             linea('-');
 
-            // LAMBDA 9: mensaje segun nivel de avance
+            //mensaje segun nivel de avance
             auto mensajeNivel = [](int pct) -> string {
                 if (pct >= 80) return "Excelente progreso! Sigue asi.";
                 if (pct >= 50) return "Buen avance, no te detengas!";
@@ -449,10 +414,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 9: Gestionar idiomas
-              // Lambda: filtrar por dificultad, buscar
-              // ========================================================
+              
         case 9: {
             titulo("IDIOMAS DISPONIBLES");
             cout << "  Idiomas en el sistema:\n\n";
@@ -463,14 +425,14 @@ int main() {
                     << " | Dificultad: " << id.dificultad << "\n";
                 });
 
-            // LAMBDA 6: filtrar idiomas dificiles
+            
             cout << "\n  Idiomas nivel Dificil:\n";
             listaIdiomas.iterar([](const Idioma& id) {
                 if (id.dificultad == "Dificil")
                     cout << "  -> " << id.nombre << "\n";
                 });
 
-            // Buscar idioma con lambda en ListaDoble::buscar
+            
             cout << "\n  Buscar idioma (o ENTER para omitir): ";
             string nom; getline(cin, nom);
             if (!nom.empty()) {
@@ -486,11 +448,7 @@ int main() {
             break;
         }
 
-              // ========================================================
-              // OPCION 10: Estadisticas del sistema
-              // Lambda: calcular stats en una sola pasada
-              // Recursion: sumaPuntosRec
-              // ========================================================
+              
         case 10: {
             titulo("ESTADISTICAS DEL SISTEMA");
 
@@ -500,7 +458,7 @@ int main() {
             int maxPuntos = 0;
             string lider = "N/A";
 
-            // LAMBDA 7: calcular todo en una pasada
+            
             listaUsuarios.iterar([&](Usuario& u) {
                 if (esPremium(u)) premiums++;
                 if (u.puntos > maxPuntos) { maxPuntos = u.puntos; lider = u.nombre; }
@@ -526,10 +484,7 @@ int main() {
             break;
         }
 
-               // ========================================================
-               // OPCION 11: Generar dataset
-               // Genera datos para todas las entidades y guarda en .txt
-               // ========================================================
+               
         case 11: {
             titulo("GENERADOR DE DATASET");
             cout << "  Cuantos usuarios generar? (5-50): ";
@@ -575,9 +530,7 @@ int main() {
             break;
         }
 
-               // ========================================================
-               // OPCION 0: Guardar y salir
-               // ========================================================
+               
         case 0:
             guardarUsuarios(listaUsuarios);
             cout << "\n  Datos guardados correctamente.\n";

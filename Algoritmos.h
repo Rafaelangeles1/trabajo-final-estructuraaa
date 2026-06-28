@@ -96,8 +96,7 @@ void merge(std::vector<Ranking>& arr, int l, int m, int r) {
     while (j < n2) { arr[k] = R[j]; j++; k++; }
 }
 
-// MergeSort recursivo - O(n log n) garantizado
-// integrante Rafael David Prudencio Angeles Alegre
+// MergeSort
 void mergeSort(std::vector<Ranking>& arr, int l, int r) {
     if (l >= r) return;
     int m = l + (r - l) / 2;
@@ -106,25 +105,23 @@ void mergeSort(std::vector<Ranking>& arr, int l, int r) {
     merge(arr, l, m, r);
 }
 
-// ============================================================
-// LAMBDA HELPERS: funciones lambda reutilizables
-// ============================================================
 
-// Lambda: mostrar un usuario formateado
+
+
 auto mostrarUsuario = [](const Usuario& u) {
     std::cout << "  - " << u.nombre
         << " | Puntos: " << u.puntos
         << " | Suscripcion: " << u.suscripcion << "\n";
     };
 
-// Lambda: verificar si usuario es premium
+//verificar si usuario es premium
 auto esPremium = [](const Usuario& u) {
     return u.suscripcion != "Gratis";
     };
 
-// Lambda: verificar si usuario supera umbral de puntos
+//verificar si usuario supera umbral de puntos
 auto superaUmbral = [](const Usuario& u, int umbral) {
     return u.puntos >= umbral;
     };
 
-#endif // ALGORITMOS_H
+#endif
